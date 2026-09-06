@@ -1,11 +1,16 @@
-
 import { createServer } from "http";
 import next from "next";
 import { Server } from "socket.io";
 
 const dev = process.env.NODE_ENV !== "production";
-const hostname = "localhost";
-const port = 3000;
+
+// Local: localhost
+// Render: 0.0.0.0
+const hostname = dev ? "localhost" : "0.0.0.0";
+
+// Local: 3000
+// Render: uses Render's PORT (for example 10000)
+const port = Number(process.env.PORT) || 3000;
 
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
@@ -34,13 +39,9 @@ app.prepare().then(() => {
     for (const candidateId of waitingUsers) {
       if (candidateId === socketId) continue;
 
-      const candidateSocket =
-        io.sockets.sockets.get(candidateId);
+      const candidateSocket = io.sockets.sockets.get(candidateId);
 
-      if (
-        candidateSocket &&
-        !partners.has(candidateId)
-      ) {
+      if (candidateSocket && !partners.has(candidateId)) {
         strangerId = candidateId;
         break;
       }
@@ -61,10 +62,9 @@ app.prepare().then(() => {
     waitingUsers.delete(strangerId);
     waitingUsers.delete(socketId);
 
-    const roomId =
-      `room-${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2, 8)}`;
+    const roomId = `room-${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2, 8)}`;
 
     partners.set(socketId, strangerId);
     partners.set(strangerId, socketId);
@@ -72,11 +72,8 @@ app.prepare().then(() => {
     userRooms.set(socketId, roomId);
     userRooms.set(strangerId, roomId);
 
-    const currentSocket =
-      io.sockets.sockets.get(socketId);
-
-    const strangerSocket =
-      io.sockets.sockets.get(strangerId);
+    const currentSocket = io.sockets.sockets.get(socketId);
+    const strangerSocket = io.sockets.sockets.get(strangerId);
 
     currentSocket?.join(roomId);
     strangerSocket?.join(roomId);
@@ -87,6 +84,7 @@ app.prepare().then(() => {
       We use the first socketId passed to this function
       as the caller.
     */
+
     io.to(socketId).emit("matched", {
       roomId,
       initiator: true,
@@ -97,16 +95,14 @@ app.prepare().then(() => {
       initiator: false,
     });
 
-    console.log(
-      `MATCHED: ${socketId} <-> ${strangerId}`
-    );
+    console.log(`MATCHED: ${socketId} <-> ${strangerId}`);
   };
 
   io.on("connection", (socket) => {
     console.log("CONNECTED:", socket.id);
 
     // --------------------------------
-    // FIND STRANGER
+    // END CALL
     // --------------------------------
 
     socket.on("end-call", () => {
@@ -133,18 +129,19 @@ app.prepare().then(() => {
       // Leave room
       socket.leave(roomId ?? "");
 
-      const partnerSocket =
-        io.sockets.sockets.get(partnerId);
+      const partnerSocket = io.sockets.sockets.get(partnerId);
 
       partnerSocket?.leave(roomId ?? "");
 
       // Tell stranger the call has ended
       io.to(partnerId).emit("call-ended");
 
-      console.log(
-        `${socket.id} ended call with ${partnerId}`
-      );
+      console.log(`${socket.id} ended call with ${partnerId}`);
     });
+
+    // --------------------------------
+    // FIND STRANGER
+    // --------------------------------
 
     socket.on("find-stranger", () => {
       console.log(`FIND REQUEST: ${socket.id}`);
@@ -165,31 +162,20 @@ app.prepare().then(() => {
         roomId: string;
         message: string;
       }) => {
-        const currentRoom =
-          userRooms.get(socket.id);
+        const currentRoom = userRooms.get(socket.id);
 
-        if (
-          !currentRoom ||
-          currentRoom !== roomId
-        ) {
-          console.log(
-            `Invalid room message from ${socket.id}`
-          );
-
+        if (!currentRoom || currentRoom !== roomId) {
+          console.log(`Invalid room message from ${socket.id}`);
           return;
         }
 
-        const partnerId =
-          partners.get(socket.id);
+        const partnerId = partners.get(socket.id);
 
         if (!partnerId) return;
 
-        io.to(partnerId).emit(
-          "receive-message",
-          {
-            message,
-          }
-        );
+        io.to(partnerId).emit("receive-message", {
+          message,
+        });
       }
     );
 
@@ -204,23 +190,16 @@ app.prepare().then(() => {
       }: {
         offer: RTCSessionDescriptionInit;
       }) => {
-        const partnerId =
-          partners.get(socket.id);
+        const partnerId = partners.get(socket.id);
 
         if (!partnerId) {
-          console.log(
-            `No partner for offer from ${socket.id}`
-          );
-
+          console.log(`No partner for offer from ${socket.id}`);
           return;
         }
 
-        io.to(partnerId).emit(
-          "webrtc-offer",
-          {
-            offer,
-          }
-        );
+        io.to(partnerId).emit("webrtc-offer", {
+          offer,
+        });
 
         console.log(
           `WEBRTC OFFER: ${socket.id} -> ${partnerId}`
@@ -239,23 +218,16 @@ app.prepare().then(() => {
       }: {
         answer: RTCSessionDescriptionInit;
       }) => {
-        const partnerId =
-          partners.get(socket.id);
+        const partnerId = partners.get(socket.id);
 
         if (!partnerId) {
-          console.log(
-            `No partner for answer from ${socket.id}`
-          );
-
+          console.log(`No partner for answer from ${socket.id}`);
           return;
         }
 
-        io.to(partnerId).emit(
-          "webrtc-answer",
-          {
-            answer,
-          }
-        );
+        io.to(partnerId).emit("webrtc-answer", {
+          answer,
+        });
 
         console.log(
           `WEBRTC ANSWER: ${socket.id} -> ${partnerId}`
@@ -274,19 +246,15 @@ app.prepare().then(() => {
       }: {
         candidate: RTCIceCandidateInit;
       }) => {
-        const partnerId =
-          partners.get(socket.id);
+        const partnerId = partners.get(socket.id);
 
         if (!partnerId) {
           return;
         }
 
-        io.to(partnerId).emit(
-          "webrtc-ice-candidate",
-          {
-            candidate,
-          }
-        );
+        io.to(partnerId).emit("webrtc-ice-candidate", {
+          candidate,
+        });
       }
     );
 
@@ -295,20 +263,16 @@ app.prepare().then(() => {
     // --------------------------------
 
     socket.on("next-stranger", () => {
-      console.log(
-        `NEXT REQUEST: ${socket.id}`
-      );
+      console.log(`NEXT REQUEST: ${socket.id}`);
 
-      const partnerId =
-        partners.get(socket.id);
+      const partnerId = partners.get(socket.id);
 
       if (!partnerId) {
         findMatch(socket.id);
         return;
       }
 
-      const roomId =
-        userRooms.get(socket.id);
+      const roomId = userRooms.get(socket.id);
 
       partners.delete(socket.id);
       partners.delete(partnerId);
@@ -318,20 +282,15 @@ app.prepare().then(() => {
 
       socket.leave(roomId ?? "");
 
-      const partnerSocket =
-        io.sockets.sockets.get(partnerId);
+      const partnerSocket = io.sockets.sockets.get(partnerId);
 
       partnerSocket?.leave(roomId ?? "");
 
-      io.to(partnerId).emit(
-        "stranger-left"
-      );
+      io.to(partnerId).emit("stranger-left");
 
       findMatch(socket.id);
 
-      console.log(
-        `${socket.id} left ${partnerId}`
-      );
+      console.log(`${socket.id} left ${partnerId}`);
     });
 
     // --------------------------------
@@ -339,15 +298,11 @@ app.prepare().then(() => {
     // --------------------------------
 
     socket.on("disconnect", () => {
-      console.log(
-        "DISCONNECTED:",
-        socket.id
-      );
+      console.log("DISCONNECTED:", socket.id);
 
       removeFromWaiting(socket.id);
 
-      const partnerId =
-        partners.get(socket.id);
+      const partnerId = partners.get(socket.id);
 
       if (!partnerId) {
         return;
@@ -356,30 +311,26 @@ app.prepare().then(() => {
       partners.delete(socket.id);
       partners.delete(partnerId);
 
-      const roomId =
-        userRooms.get(socket.id);
+      const roomId = userRooms.get(socket.id);
 
       userRooms.delete(socket.id);
       userRooms.delete(partnerId);
 
-      const partnerSocket =
-        io.sockets.sockets.get(partnerId);
+      const partnerSocket = io.sockets.sockets.get(partnerId);
 
       partnerSocket?.leave(roomId ?? "");
 
-      io.to(partnerId).emit(
-        "stranger-left"
-      );
+      io.to(partnerId).emit("stranger-left");
 
-      console.log(
-        `${socket.id} disconnected`
-      );
+      console.log(`${socket.id} disconnected`);
     });
   });
 
-  httpServer.listen(port, () => {
-    console.log(
-      `> Ready on http://${hostname}:${port}`
-    );
+  // --------------------------------
+  // START SERVER
+  // --------------------------------
+
+  httpServer.listen(port, "0.0.0.0", () => {
+    console.log(`> Ready on port ${port}`);
   });
 });
