@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Umegele — Anonymous Stranger Video Chat
 
-## Getting Started
+Umegele is a real-time anonymous video chat application that connects users with random strangers for one-to-one video conversations.
 
-First, run the development server:
+The project is built around WebRTC for peer-to-peer audio/video communication and Socket.IO for real-time matchmaking, signaling, and text messaging.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- 🎥 Anonymous one-to-one video chat
+- 🔀 Random stranger matchmaking
+- 🎤 Microphone on/off control
+- 📹 Camera on/off control
+- 💬 Real-time text chat
+- ⏭️ Next Stranger functionality
+- 🔌 Automatic handling when a stranger disconnects
+- 🟢 Real-time connection status
+- ⏱️ Call duration timer
+- 🔐 STUN and TURN support for WebRTC connectivity
+- ✨ AI-powered conversation suggestions using Google Gemini
+- 📱 Responsive user interface
+- 🏠 Simple home and chat navigation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Frontend
 
-## Learn More
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
 
-To learn more about Next.js, take a look at the following resources:
+### Real-time Communication
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- WebRTC
+- Socket.IO
+- Socket.IO Client
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Backend
 
-## Deploy on Vercel
+- Node.js
+- Custom Next.js server
+- Socket.IO server
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### AI
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Google Gemini API
+- `@google/genai`
+
+### WebRTC Infrastructure
+
+- STUN
+- Metered TURN servers
+
+## 🏗️ Architecture
+
+The application uses a custom Node.js server to run Next.js and Socket.IO together.
+
+```text
+                    ┌─────────────────────┐
+                    │       Browser       │
+                    │   Next.js / React   │
+                    └──────────┬──────────┘
+                               │
+                  ┌────────────┴────────────┐
+                  │                         │
+                  ▼                         ▼
+           Socket.IO Server              WebRTC
+                  │                         │
+          Matchmaking & Signaling      Audio / Video
+                  │                         │
+                  ▼                         ▼
+            Random Stranger          Stranger's Browser
