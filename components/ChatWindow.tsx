@@ -12,21 +12,13 @@ type Message = {
 
 export default function ChatWindow() {
   const [callSeconds, setCallSeconds] = useState(0);
-
   const [message, setMessage] = useState("");
-
   const [matched, setMatched] = useState(false);
-
   const [roomId, setRoomId] = useState<string | null>(null);
-
   const [messages, setMessages] = useState<Message[]>([]);
-
   const [isSearching, setIsSearching] = useState(true);
-
   const [strangerLeft, setStrangerLeft] = useState(false);
-
   const [reported, setReported] = useState(false);
-
   const [initiator, setInitiator] = useState(false);
 
   const [connectionStatus, setConnectionStatus] = useState<
@@ -38,10 +30,8 @@ export default function ChatWindow() {
   // --------------------------------
 
   const [suggestions, setSuggestions] = useState<string[]>([]);
-
   const [isGeneratingSuggestions, setIsGeneratingSuggestions] =
     useState(false);
-
   const [aiError, setAiError] = useState("");
 
   // --------------------------------
@@ -141,8 +131,6 @@ export default function ChatWindow() {
         },
       ]);
 
-      // Remove old suggestions when stranger sends
-      // a new message because we want fresh suggestions.
       setSuggestions([]);
       setAiError("");
     };
@@ -188,45 +176,19 @@ export default function ChatWindow() {
     };
 
     socket.on("waiting", handleWaiting);
-
     socket.on("matched", handleMatched);
-
-    socket.on(
-      "receive-message",
-      handleReceiveMessage
-    );
-
-    socket.on(
-      "stranger-left",
-      handleStrangerLeft
-    );
-
-    socket.on(
-      "call-ended",
-      handleCallEnded
-    );
+    socket.on("receive-message", handleReceiveMessage);
+    socket.on("stranger-left", handleStrangerLeft);
+    socket.on("call-ended", handleCallEnded);
 
     socket.emit("find-stranger");
 
     return () => {
       socket.off("waiting", handleWaiting);
-
       socket.off("matched", handleMatched);
-
-      socket.off(
-        "receive-message",
-        handleReceiveMessage
-      );
-
-      socket.off(
-        "stranger-left",
-        handleStrangerLeft
-      );
-
-      socket.off(
-        "call-ended",
-        handleCallEnded
-      );
+      socket.off("receive-message", handleReceiveMessage);
+      socket.off("stranger-left", handleStrangerLeft);
+      socket.off("call-ended", handleCallEnded);
     };
   }, []);
 
@@ -257,7 +219,6 @@ export default function ChatWindow() {
 
     setMessage("");
 
-    // Clear suggestions after sending
     setSuggestions([]);
     setAiError("");
   };
@@ -306,9 +267,7 @@ export default function ChatWindow() {
         !data.suggestions ||
         !Array.isArray(data.suggestions)
       ) {
-        throw new Error(
-          "Invalid suggestions received"
-        );
+        throw new Error("Invalid suggestions received");
       }
 
       setSuggestions(
@@ -339,7 +298,6 @@ export default function ChatWindow() {
   ) => {
     setMessage(suggestion);
 
-    // Hide suggestions after selecting one
     setSuggestions([]);
     setAiError("");
   };
@@ -349,9 +307,7 @@ export default function ChatWindow() {
   // --------------------------------
 
   const nextStranger = () => {
-    console.log(
-      "Finding next stranger..."
-    );
+    console.log("Finding next stranger...");
 
     setMatched(false);
     setIsSearching(true);
@@ -407,10 +363,7 @@ export default function ChatWindow() {
       return;
     }
 
-    console.log(
-      "Reported stranger:",
-      roomId
-    );
+    console.log("Reported stranger:", roomId);
 
     setReported(true);
   };
@@ -419,44 +372,42 @@ export default function ChatWindow() {
   // SEARCHING
   // --------------------------------
 
- if (isSearching) {
-  return (
-    <div className="w-full max-w-5xl bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden flex flex-col shadow-2xl p-10">
-      
-      <div className="text-5xl mb-6">
-       🔎
+  if (isSearching) {
+    return (
+      <div className="w-full max-w-5xl bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden flex flex-col shadow-2xl p-6 sm:p-10">
+        <div className="text-5xl mb-6">
+          🔎
+        </div>
+
+        <h1 className="text-2xl sm:text-3xl font-bold mb-3">
+          Finding a stranger...
+        </h1>
+
+        <p className="text-zinc-400">
+          Please wait while we find someone for you.
+        </p>
+
+        <div className="flex gap-2 mt-6">
+          <span className="h-2 w-2 bg-white rounded-full animate-bounce" />
+          <span className="h-2 w-2 bg-white rounded-full animate-bounce [animation-delay:150ms]" />
+          <span className="h-2 w-2 bg-white rounded-full animate-bounce [animation-delay:300ms]" />
+        </div>
       </div>
+    );
+  }
 
-      <h1 className="text-3xl font-bold mb-3">
-        Finding a stranger...
-      </h1>
-
-      <p className="text-zinc-400">
-        Please wait while we find someone for you.
-      </p>
-
-      <div className="flex gap-2 mt-6">
-        <span className="h-2 w-2 bg-white rounded-full animate-bounce" />
-
-        <span className="h-2 w-2 bg-white rounded-full animate-bounce [animation-delay:150ms]" />
-
-        <span className="h-2 w-2 bg-white rounded-full animate-bounce [animation-delay:300ms]" />
-      </div>
-    </div>
-  );
-}
   // --------------------------------
   // CALL ENDED
   // --------------------------------
 
   if (strangerLeft) {
     return (
-      <div className="w-full max-w-5xl h-[750px] bg-zinc-900 border border-zinc-800 rounded-3xl flex flex-col items-center justify-center shadow-2xl px-6 text-center">
+      <div className="w-full max-w-5xl min-h-150 sm:h-187.5 bg-zinc-900 border border-zinc-800 rounded-3xl flex flex-col items-center justify-center shadow-2xl px-6 text-center">
         <div className="text-5xl mb-6">
           👋
         </div>
 
-        <h1 className="text-3xl font-bold mb-3">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-3">
           Call ended
         </h1>
 
@@ -478,9 +429,7 @@ export default function ChatWindow() {
   // FORMAT TIME
   // --------------------------------
 
-  function formatTime(
-    callSeconds: number
-  ) {
+  function formatTime(callSeconds: number) {
     const totalSeconds = Math.max(
       0,
       Math.floor(callSeconds)
@@ -490,8 +439,7 @@ export default function ChatWindow() {
       totalSeconds / 60
     );
 
-    const seconds =
-      totalSeconds % 60;
+    const seconds = totalSeconds % 60;
 
     return `${minutes}:${seconds
       .toString()
@@ -504,78 +452,63 @@ export default function ChatWindow() {
 
   return (
     <div className="w-full max-w-5xl bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden flex flex-col shadow-2xl">
-
+      
       {/* HEADER */}
 
-      <div className="h-16 px-6 border-b border-zinc-800 flex items-center justify-between">
-
-        <div className="flex items-center gap-3">
-
-          <div className="h-10 w-10 rounded-full bg-zinc-700 flex items-center justify-center">
+      <div className="min-h-16 px-4 sm:px-6 py-3 border-b border-zinc-800 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          
+          <div className="h-10 w-10 shrink-0 rounded-full bg-zinc-700 flex items-center justify-center">
             👤
           </div>
 
-          <div>
-
+          <div className="min-w-0">
             <h2 className="font-semibold">
               Stranger
             </h2>
 
             <div className="flex items-center gap-1.5">
-
               <span
-                className={`h-2 w-2 rounded-full ${connectionStatus ===
-                  "connected"
-                  ? "bg-green-500"
-                  : "bg-yellow-500 animate-pulse"
-                  }`}
+                className={`h-2 w-2 shrink-0 rounded-full ${
+                  connectionStatus === "connected"
+                    ? "bg-green-500"
+                    : "bg-yellow-500 animate-pulse"
+                }`}
               />
 
-              <span className="text-xs text-zinc-400">
-                {connectionStatus ===
-                  "connected"
+              <span className="text-xs text-zinc-400 truncate">
+                {connectionStatus === "connected"
                   ? `Connected (${formatTime(
-                    callSeconds
-                  )})`
+                      callSeconds
+                    )})`
                   : "Connecting..."}
               </span>
-
             </div>
-
           </div>
-
         </div>
 
         <button
           onClick={reportStranger}
           disabled={reported}
-          className="text-sm text-zinc-400 hover:text-red-400 disabled:text-green-500 transition"
+          className="shrink-0 text-sm text-zinc-400 hover:text-red-400 disabled:text-green-500 transition"
         >
-          {reported
-            ? "Reported ✓"
-            : "Report"}
+          {reported ? "Reported ✓" : "Report"}
         </button>
-
       </div>
 
       {/* VIDEO */}
 
-      <div className="p-4 border-b border-zinc-800">
-
+      <div className="p-3 sm:p-4 border-b border-zinc-800">
         <WebRTCVideo
           initiator={initiator}
           matched={matched}
-          onConnectionChange={
-            handleConnectionChange
-          }
+          onConnectionChange={handleConnectionChange}
         />
-
       </div>
 
       {/* CHAT */}
 
-      <div className="h-52 overflow-y-auto px-6 py-4 space-y-3">
-
+      <div className="h-52 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
         {messages.length === 0 && (
           <div className="text-center text-zinc-600 text-sm mt-4">
             Say hello to your new stranger 👋
@@ -585,35 +518,32 @@ export default function ChatWindow() {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.sender === "you"
-              ? "justify-end"
-              : "justify-start"
-              }`}
+            className={`flex ${
+              msg.sender === "you"
+                ? "justify-end"
+                : "justify-start"
+            }`}
           >
-
             <div
-              className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm ${msg.sender === "you"
-                ? "bg-white text-zinc-950 rounded-br-md"
-                : "bg-zinc-800 text-white rounded-bl-md"
-                }`}
+              className={`max-w-[85%] sm:max-w-[75%] px-4 py-3 rounded-2xl text-sm wrap-break-word ${
+                msg.sender === "you"
+                  ? "bg-white text-zinc-950 rounded-br-md"
+                  : "bg-zinc-800 text-white rounded-bl-md"
+              }`}
             >
               {msg.text}
             </div>
-
           </div>
         ))}
-
       </div>
 
       {/* AI SUGGESTIONS */}
 
       {suggestions.length > 0 && (
-        <div className="px-4 pb-3">
-
+        <div className="px-3 sm:px-4 pb-3">
           <div className="bg-zinc-800/70 border border-zinc-700 rounded-2xl p-3">
-
+            
             <div className="flex items-center justify-between mb-2">
-
               <span className="text-xs text-zinc-400">
                 ✨ AI suggestions
               </span>
@@ -627,31 +557,24 @@ export default function ChatWindow() {
               >
                 Close
               </button>
-
             </div>
 
             <div className="flex flex-col gap-2">
-
               {suggestions.map(
                 (suggestion, index) => (
                   <button
                     key={`${suggestion}-${index}`}
                     onClick={() =>
-                      selectSuggestion(
-                        suggestion
-                      )
+                      selectSuggestion(suggestion)
                     }
-                    className="text-left px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-zinc-300 hover:bg-zinc-700 hover:text-white transition"
+                    className="w-full text-left px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-sm text-zinc-300 hover:bg-zinc-700 hover:text-white transition wrap-break-word"
                   >
                     {suggestion}
                   </button>
                 )
               )}
-
             </div>
-
           </div>
-
         </div>
       )}
 
@@ -667,9 +590,20 @@ export default function ChatWindow() {
 
       {/* MESSAGE INPUT */}
 
-      <div className="p-4 border-t border-zinc-800">
+      <div className="p-3 sm:p-4 border-t border-zinc-800">
+        
+        {/* 
+          MOBILE:
+          Input + Suggest
+          Send below
 
-        <div className="flex gap-3">
+          DESKTOP:
+          Input + Suggest + Send in one row
+        */}
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          
+          {/* INPUT */}
 
           <input
             type="text"
@@ -679,7 +613,7 @@ export default function ChatWindow() {
             }
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
-            className="flex-1 h-12 px-4 rounded-xl bg-zinc-800 border border-zinc-700 outline-none focus:border-zinc-500 placeholder:text-zinc-500"
+            className="w-full min-w-0 flex-1 h-12 p-4 rounded-xl bg-zinc-800 border border-zinc-700 outline-none focus:border-zinc-500 placeholder:text-zinc-500"
           />
 
           {/* AI BUTTON */}
@@ -690,7 +624,7 @@ export default function ChatWindow() {
               !matched ||
               isGeneratingSuggestions
             }
-            className="px-4 h-12 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            className="w-full sm:w-auto shrink-0 px-4 h-12 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-200 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
             title="Get AI message suggestions"
           >
             {isGeneratingSuggestions
@@ -703,29 +637,27 @@ export default function ChatWindow() {
           <button
             onClick={sendMessage}
             disabled={!message.trim()}
-            className="px-5 h-12 rounded-xl bg-white text-zinc-950 font-semibold hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
+            className="w-full sm:w-auto shrink-0 px-5 h-12 rounded-xl bg-white text-zinc-950 font-semibold hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
           >
             Send
           </button>
 
         </div>
-
       </div>
 
       {/* ACTIONS */}
 
-      <div className="px-4 pb-4 flex gap-3">
-
+      <div className="px-3 sm:px-4 pb-3 sm:pb-4">
         <button
           onClick={nextStranger}
-          className="flex-1 h-12 rounded-xl bg-zinc-800 border border-zinc-700 font-semibold hover:bg-zinc-700 transition"
+          className="w-full h-12 rounded-xl bg-zinc-800 border border-zinc-700 font-semibold hover:bg-zinc-700 transition"
         >
           Next Stranger →
         </button>
 
         {/* END CALL */}
 
-        {/* 
+        {/*
         <button
           onClick={endCall}
           className="px-7 h-12 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-500 transition"
@@ -733,9 +665,7 @@ export default function ChatWindow() {
           End Call
         </button>
         */}
-
       </div>
-
     </div>
   );
 }
