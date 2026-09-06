@@ -423,7 +423,14 @@ export default function ChatWindow() {
     return (
       <div className="w-full max-w-5xl bg-zinc-900 border p-10 border-zinc-800 rounded-3xl overflow-hidden flex flex-col shadow-2xl">
         <div className="text-5xl mb-6">
-          🔎
+          <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 48 48" transform="scale(-1, 1)" transform-origin="center">
+            <path fill="#616161" d="M34.6 28.1H38.6V45.1H34.6z" transform="rotate(-45.001 36.586 36.587)"></path>
+            <path fill="#616161" d="M20 4A16 16 0 1 0 20 36A16 16 0 1 0 20 4Z"></path>
+            <path fill="#37474F" d="M36.2 32.1H40.2V44.400000000000006H36.2z" transform="rotate(-45.001 38.24 38.24)"></path>
+            <path fill="#64B5F6" d="M20 7A13 13 0 1 0 20 33A13 13 0 1 0 20 7Z"></path>
+            <path fill="#BBDEFB" d="M26.9,14.2c-1.7-2-4.2-3.2-6.9-3.2s-5.2,1.2-6.9,3.2c-0.4,0.4-0.3,1.1,0.1,1.4c0.4,0.4,1.1,0.3,1.4-0.1C16,13.9,17.9,13,20,13s4,0.9,5.4,2.5c0.2,0.2,0.5,0.4,0.8,0.4c0.2,0,0.5-0.1,0.6-0.2C27.2,15.3,27.2,14.6,26.9,14.2z"></path>
+          </svg>
+
         </div>
 
         <h1 className="text-3xl font-bold mb-3">
@@ -525,20 +532,19 @@ export default function ChatWindow() {
             <div className="flex items-center gap-1.5">
 
               <span
-                className={`h-2 w-2 rounded-full ${
-                  connectionStatus ===
+                className={`h-2 w-2 rounded-full ${connectionStatus ===
                   "connected"
-                    ? "bg-green-500"
-                    : "bg-yellow-500 animate-pulse"
-                }`}
+                  ? "bg-green-500"
+                  : "bg-yellow-500 animate-pulse"
+                  }`}
               />
 
               <span className="text-xs text-zinc-400">
                 {connectionStatus ===
-                "connected"
+                  "connected"
                   ? `Connected (${formatTime(
-                      callSeconds
-                    )})`
+                    callSeconds
+                  )})`
                   : "Connecting..."}
               </span>
 
@@ -587,19 +593,17 @@ export default function ChatWindow() {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${
-              msg.sender === "you"
-                ? "justify-end"
-                : "justify-start"
-            }`}
+            className={`flex ${msg.sender === "you"
+              ? "justify-end"
+              : "justify-start"
+              }`}
           >
 
             <div
-              className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm ${
-                msg.sender === "you"
-                  ? "bg-white text-zinc-950 rounded-br-md"
-                  : "bg-zinc-800 text-white rounded-bl-md"
-              }`}
+              className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm ${msg.sender === "you"
+                ? "bg-white text-zinc-950 rounded-br-md"
+                : "bg-zinc-800 text-white rounded-bl-md"
+                }`}
             >
               {msg.text}
             </div>
